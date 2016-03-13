@@ -9,6 +9,7 @@ import com.shekhargulati.deduplication.tweet.repository.UrlRepository;
 import com.shekhargulati.reactivex.twitter.TweetStream;
 import rx.Observable;
 import twitter4j.Status;
+import twitter4j.conf.Configuration;
 
 import java.util.function.Function;
 
@@ -24,6 +25,10 @@ public class TweetDeDuplicator {
         this.pipeline = deduplicationPipeline(Function.identity(), Function.identity());
     }
 
+    public static TweetDeDuplicator getDeduplicatorWithInmemoryRepositories() {
+        return new TweetDeDuplicator(UrlRepository.getDefaultRepository(), TextHashRepository.getDefaultRepository());
+    }
+
     public TweetDeDuplicator(final UrlRepository urlRepository, final TextHashRepository textHashRepository, final Function<Observable<Status>, Observable<Status>> pipeline) {
         this.urlRepository = urlRepository;
         this.textHashRepository = textHashRepository;
@@ -32,6 +37,18 @@ public class TweetDeDuplicator {
 
     public Observable<Status> deduplicate(final String... searchTerms) {
         return deduplicate(TweetStream.of(searchTerms));
+    }
+
+    public Observable<Status> deduplicate(final Configuration configuration, final String... searchTerms) {
+        return deduplicate(TweetStream.of(configuration, searchTerms));
+    }
+
+    public Observable<Status> deduplicate(final long... users) {
+        return deduplicate(TweetStream.of(users));
+    }
+
+    public Observable<Status> deduplicate(final Configuration configuration, final long... users) {
+        return deduplicate(TweetStream.of(configuration, users));
     }
 
     public Observable<Status> deduplicate(final Observable<Status> tweetObs) {
